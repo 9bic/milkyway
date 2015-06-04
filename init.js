@@ -34,12 +34,30 @@ function main() {
 }
 
 function drawStars(stars) {
-  var geometry = new THREE.Geometry();
-  var material = new THREE.ParticleBasicMaterial({
+  // ジオメトリ
+  var geometryS = new THREE.Geometry();
+  var geometryM = new THREE.Geometry();
+  var geometryL = new THREE.Geometry();
+
+  // 暗い星のマテリアル
+  var materialS = new THREE.ParticleBasicMaterial({
     vertexColors: true,
     size: 1.0,
     sizeAttenuation: false
   });
+  // 中位の星のマテリアル
+  var materialM = new THREE.ParticleBasicMaterial({
+    vertexColors: true,
+    size: 2.0,
+    sizeAttenuation: false
+  });
+  // 明るい星のマテリアル
+  var materialL = new THREE.ParticleBasicMaterial({
+    vertexColors: true,
+    size: 3.0,
+    sizeAttenuation: false
+  });
+
   var colors = [], brightStars = [];
   for (var i in stars) {
     var star = stars[i];
@@ -51,24 +69,31 @@ function drawStars(stars) {
     var z = dist * Math.sin(dec);
     star.position = new THREE.Vector3(x, z, -y);
  
-    //var alpha = 1 - star.Vmag / 10;
-    //alpha = (alpha < 0.1) ? 0.1 : (alpha > 1 ? 1 : alpha);
     var alpha = 1;
     star.color = new THREE.Color(parseInt(star.color));
     star.color.r *= alpha;
     star.color.g *= alpha;
     star.color.b *= alpha;
  
+    // 星の明るさによってジオメトリを切り替える
     if (star.Vmag < 4.0) {
-      brightStars.push(star);
+      geometryL.vertices.push(star.position);
+      geometryL.colors.push(star.color);
+    } else if (star.Vmag < 6.0) {
+      geometryM.vertices.push(star.position);
+      geometryM.colors.push(star.color);
     } else {
-      geometry.vertices.push(star.position);
-      colors.push(star.color);
+      geometryS.vertices.push(star.position);
+      geometryS.colors.push(star.color);
     }
   }
-  geometry.colors = colors;
-  var particleSystem = new THREE.ParticleSystem(geometry, material);
-  scene.add(particleSystem);
+  //geometry.colors = colors;
+  var particleSystemS = new THREE.ParticleSystem(geometryS, materialS);
+  var particleSystemM = new THREE.ParticleSystem(geometryM, materialM);
+  var particleSystemL = new THREE.ParticleSystem(geometryL, materialL);
+  scene.add(particleSystemS);
+  scene.add(particleSystemM);
+  scene.add(particleSystemL);
  
   for (var i in brightStars) {
     var star = brightStars[i];
