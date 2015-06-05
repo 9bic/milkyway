@@ -1,35 +1,50 @@
-var renderer, scene, camera, light, ambient, canvas, controls, clock, controlsEnabled;
-var prevTime = performance.now();
+var renderer, scene, camera, light, ambient, canvas, controls, prevTheta;
 
 function init() {
   var container = document.getElementById('milkyway');
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
-  var w = document.body.clientWidth;
-  var h = document.body.clientHeight;
-  renderer.setSize(w, h);
+  renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor('#000038', 1);
   container.appendChild(renderer.domElement);
 
   scene = new THREE.Scene();
 
-  camera = new THREE.PerspectiveCamera(50, w/h, 100, 8000);
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 100, 8000);
   camera.position = new THREE.Vector3(0, 0, 70);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
   scene.add(camera);
 
+  // カメラの設定
   //controls = new THREE.FirstPersonControls(camera, renderer.domElement);
   //controls.movementSpeed = 8;
   //controls.lookSpeed = 0.05;
   controls = new THREE.PointerLockControls(camera, renderer.domElement);
+  scene.add(controls.getObject());
   controls.enabled = true;
 
+  // 夏っぽい位置にカメラを移動
+  controls.getObject().children[0].rotation.x = 0.7;
+  controls.getObject().rotation.y = -2.84;
 }
 
 function main() {
-  //controls.update(clock.getDelta());
-  renderer.render(scene, camera);
   requestAnimationFrame(main);
+  var theta = controls.getObject().rotation;
+  // not rotated object, not rerender
+  if (prevTheta !== undefined) {
+    if ((prevTheta.x != theta.x) ||
+        (prevTheta.y != theta.y) ||
+        (prevTheta.z != theta.z)) {
+          renderer.render(scene, camera);
+        }
+  }
+
+  prevTheta = {
+    x: controls.getObject().rotation.x,
+    y: controls.getObject().rotation.y,
+    z: controls.getObject().rotation.z,
+  };
 }
 
 function drawStars(stars, lines) {
@@ -38,7 +53,7 @@ function drawStars(stars, lines) {
   var geometryL = new THREE.Geometry();
   var material = new THREE.PointCloudMaterial({
     vertexColors: true,
-    size: 0.7,
+    size: 0.8,
     sizeAttenuation: false
   });
   var materialM = new THREE.PointCloudMaterial({
@@ -52,13 +67,11 @@ function drawStars(stars, lines) {
     sizeAttenuation: false
   });
 
-  var colors = [], brightStars = [];
+  var colors = [];
   for (var i in stars) {
     var star = stars[i];
     star.position = getStarVector(star);
  
-    //var alpha = 1 - star.Vmag / 5;
-    //alpha = (alpha < 0.1) ? 0.1 : (alpha > 1 ? 1 : alpha);
     var alpha = 0.7;
     star.color = new THREE.Color(parseInt(star.color));
     star.color.r *= alpha;
@@ -66,7 +79,6 @@ function drawStars(stars, lines) {
     star.color.b *= alpha;
  
     if (star.Vmag < 4.0) {
-      //brightStars.push(star);
       geometryL.vertices.push(star.position);
       geometryL.colors.push(star.color);
       continue;
@@ -99,8 +111,8 @@ function drawStars(stars, lines) {
   scene.add(new THREE.PointCloud(geometry, material));
   scene.add(new THREE.PointCloud(geometryM, materialM));
   scene.add(new THREE.PointCloud(geometryL, materialL));
-
-  controlsEnabled = true;
+ 
+  renderer.render(scene, camera);
 }
 
 var loadObj = {
@@ -158,7 +170,7 @@ function parseCsv(file) {
 function getStarVector(data) {
   var ra = data.RA * Math.PI / 180;
   var dec = data.Dec * Math.PI / 180;
-  var dist = 1000;
+  var dist = 1200;
   var x = dist * Math.cos(ra) * Math.cos(dec);
   var y = dist * Math.sin(ra) * Math.cos(dec);
   var z = dist * Math.sin(dec);
