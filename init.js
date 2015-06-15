@@ -28,6 +28,8 @@ function init() {
   controls.getObject().rotation.y = -2.84;
 }
 
+window.on
+
 function main() {
   requestAnimationFrame(main);
   var theta = controls.getObject().rotation;
@@ -119,6 +121,7 @@ var loadObj = {
   'position': 'materials/hip.json',
   'line': 'materials/hip_link.csv'
 };
+window.onresize = onWindowResize;
 window.onload = function(e) {
   var source, lines;
   init();
@@ -175,4 +178,12 @@ function getStarVector(data) {
   var y = dist * Math.sin(ra) * Math.cos(dec);
   var z = dist * Math.sin(dec);
   return new THREE.Vector3(x, z, -y);
+}
+function onWindowResize() {
+
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize( window.innerWidth, window.innerHeight );
+
 }
