@@ -2,7 +2,6 @@ var renderer, scene, camera, light, ambient, canvas, controls, prevTheta;
 
 function init() {
   var container = document.getElementById('milkyway');
-
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor('#000038', 1);
@@ -21,7 +20,6 @@ function init() {
   //controls.lookSpeed = 0.05;
   controls = new THREE.PointerLockControls(camera, renderer.domElement);
   scene.add(controls.getObject());
-  controls.enabled = true;
 
   // 夏っぽい位置にカメラを移動
   controls.getObject().children[0].rotation.x = 0.7;
@@ -124,6 +122,22 @@ var loadObj = {
 window.onresize = onWindowResize;
 window.onload = function(e) {
   var source, lines;
+  var pointerlock;
+  // get pointerlock by bender
+  var hasPointerLock = 'pointerLockElement' in document;
+  if (hasPointerLock) {
+    var element = document.getElementById('milkyway');
+    var pointerlockchange = function(e) {
+      var pointerLockElement = document.pointerLockElement;
+      if (pointerLockElement === element) {
+        controls.enabled = true;
+      } else {
+        controls.enabled = false;
+      }
+    }
+    element.addEventListener('click', function (e) { element.requestPointerLock(); });
+    document.addEventListener('pointerlockchange', pointerlockchange );
+  }
   init();
   loadFile(loadObj.line, function(res) {
     lines = parseCsv(res); 
